@@ -503,6 +503,7 @@ export const useChatStore = create<ChatStore>()(
                         text || Locale.Midjourney.UnknownError,
                       );
               } else {
+                // res已返回json
                 const resJson = await res.json();
                 if (resJson.status == "FAIL" || resJson.code !== 0) {
                   botMessage.content = Locale.Midjourney.TaskSubmitErr(
