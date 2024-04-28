@@ -736,7 +736,9 @@ function _Chat() {
                 alert(Locale.Midjourney.NeedInputUseImgPrompt);
                 return;
             }
-        } else {
+        }
+        // 没有输入图像
+        else {
             if (userInput == "") return;
         }
         const matchCommand = chatCommands.match(userInput);
