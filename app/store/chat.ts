@@ -111,6 +111,7 @@ interface ChatStore {
   resetSession: () => void;
   getMessagesWithMemory: () => ChatMessage[];
   getMemoryPrompt: () => ChatMessage;
+  getDefaultImg: () => Promise<string>;
 
   clearAllData: () => void;
   fetchMidjourneyStatus: (botMessage: ChatMessage, extAttr?: any) => void;
@@ -119,6 +120,19 @@ interface ChatStore {
 function countMessages(msgs: ChatMessage[]) {
   return msgs.reduce((pre, cur) => pre + estimateTokenLength(cur.content), 0);
 }
+
+// function readPNGFile(filePath: string): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     fs.readFile(filePath)
+//       .then((data) => {
+//         const base64Str = Buffer.from(data).toString("base64");
+//         resolve(`data:image/png;base64,${base64Str}`);
+//       })
+//       .catch((error) => {
+//         reject(error);
+//       });
+//   });
+// }
 
 function fillTemplateWith(input: string, modelConfig: ModelConfig) {
   const vars = {
@@ -148,6 +162,22 @@ export const useChatStore = create<ChatStore>()(
     (set, get) => ({
       sessions: [createEmptySession()],
       currentSessionIndex: 0,
+
+      async getDefaultImg() {
+        const defaultImg = async () => {
+          const res = await fetch("/api/sd/default.png", {
+            method: "GET",
+            headers: getHeaders(),
+            body: null,
+          });
+          const resJson = await res.json();
+          if (res.status < 200 || res.status >= 300) {
+            return resJson?.error || resJson?.description || resJson;
+          }
+          return resJson?.data;
+        };
+        return await defaultImg();
+      },
 
       clearSessions() {
         set(() => ({

@@ -1084,6 +1084,7 @@ function _Chat() {
 
   // edit / insert message modal
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const defaultImg = "input.png";
 
   return (
     <div className={styles.chat} key={session.id}>
@@ -1346,9 +1347,9 @@ function _Chat() {
             setUseImages([...useImages, img]);
           }}
         />
-        {useImages.length > 0 && (
-          <div className={styles["chat-select-images"]}>
-            {useImages.map((img: any, i) => (
+        {/* {useImages.length > 0 && ( */}
+        <div className={styles["chat-select-images"]}>
+          {/* {useImages.map((img: any, i) => (
               <img
                 src={img.base64}
                 key={i}
@@ -1358,35 +1359,36 @@ function _Chat() {
                 title={img.filename}
                 alt={img.filename}
               />
+            ))} */}
+          <img src={defaultImg} alt={defaultImg} />
+          <div style={{ fontSize: "12px", marginBottom: "5px" }}>
+            {[
+              { name: Locale.Midjourney.ModeImagineUseImg, value: "IMAGINE" },
+              { name: Locale.Midjourney.ModeDescribe, value: "DESCRIBE" },
+            ].map((item, i) => (
+              <label key={i}>
+                <input
+                  type="radio"
+                  name="mj-img-mode"
+                  checked={mjImageMode == item.value}
+                  value={item.value}
+                  onChange={(e) => {
+                    setMjImageMode(e.target.value);
+                  }}
+                />
+                <span>{item.name}</span>
+              </label>
             ))}
-            <div style={{ fontSize: "12px", marginBottom: "5px" }}>
-              {[
-                { name: Locale.Midjourney.ModeImagineUseImg, value: "IMAGINE" },
-                { name: Locale.Midjourney.ModeDescribe, value: "DESCRIBE" },
-              ].map((item, i) => (
-                <label key={i}>
-                  <input
-                    type="radio"
-                    name="mj-img-mode"
-                    checked={mjImageMode == item.value}
-                    value={item.value}
-                    onChange={(e) => {
-                      setMjImageMode(e.target.value);
-                    }}
-                  />
-                  <span>{item.name}</span>
-                </label>
-              ))}
-            </div>
-            <div style={{ fontSize: "12px", marginBottom: "10px" }}>
-              <small>
-                {mjImageMode == "IMAGINE"
-                  ? Locale.Midjourney.HasImgTip
-                  : Locale.Midjourney.HasText2ImgTip}
-              </small>
-            </div>
           </div>
-        )}
+          <div style={{ fontSize: "12px", marginBottom: "10px" }}>
+            <small>
+              {mjImageMode == "IMAGINE"
+                ? Locale.Midjourney.HasImgTip
+                : Locale.Midjourney.HasText2ImgTip}
+            </small>
+          </div>
+        </div>
+        {/* )} */}
         <div className={styles["chat-input-panel-inner"]}>
           <textarea
             ref={inputRef}
