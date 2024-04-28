@@ -23,10 +23,10 @@ const en: LocaleType = {
     SelectImgMax: (max: number) => `Select up to ${max} images`,
     InputDisabled: "Input is disabled in this mode",
     HasImgTip:
-      "Tip: In the mask mode, only the first image will be used. In the blend mode, the five selected images will be used in order (click the image to remove it)",
-    ModeImagineUseImg: "Mask Mode",
+      "Tip: Only the first image is used in image generation (click on the image to remove it)",
+    ModeImagineUseImg: "Generate a photo image (ControlNet mode)",
     ModeBlend: "Blend Mode",
-    ModeDescribe: "Describe Mode",
+    ModeDescribe: "Text2Image Mode",
     NeedInputUseImgPrompt:
       'You need to enter content to use the image in the mask mode, please enter the content starting with "/mj"',
     BlendMinImg: (min: number, max: number) =>

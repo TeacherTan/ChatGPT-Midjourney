@@ -1368,7 +1368,6 @@ function _Chat() {
                         <div style={{fontSize: "12px", marginBottom: "5px"}}>
                             {[
                                 {name: Locale.Midjourney.ModeImagineUseImg, value: "IMAGINE"},
-                                {name: Locale.Midjourney.ModeBlend, value: "BLEND"},
                                 {name: Locale.Midjourney.ModeDescribe, value: "DESCRIBE"},
                             ].map((item, i) => (
                                 <label key={i}>
@@ -1395,9 +1394,7 @@ function _Chat() {
               ref={inputRef}
               className={styles["chat-input"]}
               placeholder={
-                  useImages.length > 0 && mjImageMode != "IMAGINE"
-                      ? Locale.Midjourney.InputDisabled
-                      : Locale.Chat.Input(submitKey)
+                Locale.Chat.Input(submitKey)
               }
               onInput={(e) => onInput(e.currentTarget.value)}
               value={userInput}

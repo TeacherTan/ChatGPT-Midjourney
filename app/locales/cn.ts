@@ -20,11 +20,10 @@ const cn = {
   Midjourney: {
     SelectImgMax: (max: number) => `最多可选择 ${max} 张图片`,
     InputDisabled: "该模式下不支持输入内容",
-    HasImgTip:
-      "提示：垫图模式/识图(describe)模式只会使用第一张图片，混图(blend)模式会按顺序使用选中的5张图片（点击图片可以移除）",
-    ModeImagineUseImg: "垫图（图生图）模式",
+    HasImgTip: "提示：图片生成均只使用第一张图片（点击图片可以移除）",
+    ModeImagineUseImg: "生成写真图片（ControlNet模式）",
     ModeBlend: "混图模式",
-    ModeDescribe: "识图（图生文）模式",
+    ModeDescribe: "文生图模式",
     NeedInputUseImgPrompt:
       "垫图模式下需要输入内容才能使用图片，请以“/mj”开头输入内容",
     BlendMinImg: (min: number, max: number) =>
