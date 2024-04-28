@@ -65,6 +65,10 @@ Current time: {{time}}`;
 
 export const DEFAULT_MODELS = [
   {
+    name: "stable-diffusion",
+    available: true,
+  },
+  {
     name: "gpt-4",
     available: true,
   },

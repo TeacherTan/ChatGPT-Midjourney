@@ -31,7 +31,7 @@ export const DEFAULT_CONFIG = {
   sidebarWidth: 300,
 
   disablePromptHint: false,
-  useMjImgSelfProxy:false,
+  useMjImgSelfProxy: false,
 
   dontShowMaskSplashScreen: false, // dont show splash screen when create chat
   hideBuiltinMasks: false, // dont add builtin masks
@@ -40,7 +40,7 @@ export const DEFAULT_CONFIG = {
   models: DEFAULT_MODELS as any as LLMModel[],
 
   modelConfig: {
-    model: "gpt-3.5-turbo" as ModelType,
+    model: "stable-diffusion" as ModelType,
     temperature: 0.5,
     top_p: 1,
     max_tokens: 2000,

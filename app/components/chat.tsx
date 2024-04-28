@@ -1274,7 +1274,7 @@ function _Chat() {
                       defaultShow={i >= messages.length - 6}
                     />
                   </div>
-                  {!isUser &&
+                  {/* {!isUser &&
                     message.model == "midjourney" &&
                     message.attr?.finished &&
                     message.attr?.taskId &&
@@ -1306,7 +1306,7 @@ function _Chat() {
                           ))}
                         </div>
                       </div>
-                    )}
+                    )} */}
                   <div className={styles["chat-message-action-date"]}>
                     {isContext
                       ? Locale.Chat.IsContext
