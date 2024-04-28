@@ -56,6 +56,13 @@ export const OpenaiPath = {
   ListModelPath: "v1/models",
 };
 
+export const stableDiffusionPath = {
+  textToImgPath: "sdapi/v1/txt2img",
+  imgToImgPath: "sdapi/v1/img2img",
+  optionsPath: "sdapi/v1/options",
+  rembgPath: "rembg",
+};
+
 export const DEFAULT_INPUT_TEMPLATE = `{{input}}`; // input / time / model / lang
 export const DEFAULT_SYSTEM_TEMPLATE = `
 You are ChatGPT, a large language model trained by OpenAI.
