@@ -1379,7 +1379,11 @@ function _Chat() {
               ))}
             </div>
             <div style={{ fontSize: "12px", marginBottom: "10px" }}>
-              <small>{Locale.Midjourney.HasImgTip}</small>
+              <small>
+                {mjImageMode == "IMAGINE"
+                  ? Locale.Midjourney.HasImgTip
+                  : Locale.Midjourney.HasText2ImgTip}
+              </small>
             </div>
           </div>
         )}
@@ -1398,7 +1402,6 @@ function _Chat() {
             style={{
               fontSize: config.fontSize,
             }}
-            disabled={useImages.length > 0 && mjImageMode != "IMAGINE"}
           />
           <IconButton
             icon={<SendWhiteIcon />}

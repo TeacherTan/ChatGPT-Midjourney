@@ -24,6 +24,7 @@ const en: LocaleType = {
     InputDisabled: "Input is disabled in this mode",
     HasImgTip:
       "Tip: Only the first image is used in image generation (click on the image to remove it)",
+    HasText2ImgTip: "Tip: Wensheng picture mode does not use picture content.",
     ModeImagineUseImg: "Generate a photo image (ControlNet mode)",
     ModeBlend: "Blend Mode",
     ModeDescribe: "Text2Image Mode",

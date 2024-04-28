@@ -21,6 +21,7 @@ const cn = {
     SelectImgMax: (max: number) => `最多可选择 ${max} 张图片`,
     InputDisabled: "该模式下不支持输入内容",
     HasImgTip: "提示：图片生成均只使用第一张图片（点击图片可以移除）",
+    HasText2ImgTip: "提示：文生图模式不使用图片内容",
     ModeImagineUseImg: "生成写真图片（ControlNet模式）",
     ModeBlend: "混图模式",
     ModeDescribe: "文生图模式",
