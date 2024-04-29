@@ -1405,7 +1405,7 @@ function _Chat() {
           <div style={{ fontSize: "12px", marginBottom: "5px" }}>
             {[
               { name: Locale.Midjourney.ModeImagineUseImg, value: "IMAGINE" },
-              { name: Locale.Midjourney.ModeDescribe, value: "DESCRIBE" },
+              // { name: Locale.Midjourney.ModeDescribe, value: "DESCRIBE" },
             ].map((item, i) => (
               <label key={i}>
                 <input
