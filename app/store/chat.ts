@@ -509,7 +509,7 @@ export const useChatStore = create<ChatStore>()(
                 body: JSON.stringify({
                   prompt: prompt,
                   negative_prompt: DEFAULT_SD_NEGATIVE_PROMPT,
-                  batch_size: 1,
+                  batch_size: 4,
                   steps: 20,
                   cfg_scale: 7,
                   width: 512,
@@ -538,10 +538,12 @@ export const useChatStore = create<ChatStore>()(
                   // 处理图像
                   // 将botMessage.attr.imgUrl存储为图片的base64
                   // 将botMessage.content存储为图片的markdown格式
-
-                  const imgUrls = base64ToBase64Url(resJson.images[0]);
-                  botMessage.attr.imgUrls = `data:image/jpeg;base64,${resJson.images[0]}`;
-                  console.log("[SD Response]", botMessage.attr.imgUrls);
+                  botMessage.attr.imgUrls = [];
+                  for (let i = 0; i < resJson.images.length; i++) {
+                    const imgUrl = `data:image/jpeg;base64,${resJson.images[i]}`;
+                    // console.log("[SD Response]", imgUrl);
+                    botMessage.attr.imgUrls[i] = imgUrl;
+                  }
                   botMessage.attr.status = resJson.status;
                   botMessage.content = Locale.Midjourney.TaskSubmitOk;
                 }
