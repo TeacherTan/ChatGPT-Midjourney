@@ -555,8 +555,6 @@ export const useChatStore = create<ChatStore>()(
                   );
                 } else {
                   // 处理图像
-                  // 将botMessage.attr.imgUrl存储为图片的base64
-                  // 将botMessage.content存储为图片的markdown格式
                   botMessage.attr.imgUrls = [];
                   for (let i = 0; i < resJson.images.length - 1; i++) {
                     const imgUrl = `data:image/jpeg;base64,${resJson.images[i]}`;
@@ -564,7 +562,7 @@ export const useChatStore = create<ChatStore>()(
                     botMessage.attr.imgUrls[i] = imgUrl;
                   }
                   botMessage.attr.status = resJson.status;
-                  botMessage.content = Locale.Midjourney.TaskSubmitOk;
+                  botMessage.content = prompt;
                 }
               }
             } catch (e: any) {

@@ -1401,8 +1401,13 @@ function _Chat() {
                 alt={img.filename}
               />
             ))} */}
-          <img id="defaultImg" src={defaultImg} alt={defaultImg} />
-          <div style={{ fontSize: "12px", marginBottom: "5px" }}>
+
+          <div
+            style={{
+              fontSize: "12px",
+              marginBottom: "5px",
+            }}
+          >
             {[
               { name: Locale.Midjourney.ModeImagineUseImg, value: "IMAGINE" },
               // { name: Locale.Midjourney.ModeDescribe, value: "DESCRIBE" },
@@ -1421,6 +1426,7 @@ function _Chat() {
                 <span>{item.name}</span>
               </label>
             ))}
+            <img id="defaultImg" src={defaultImg} alt={defaultImg} />
           </div>
           <div style={{ fontSize: "12px", marginBottom: "10px" }}>
             <small>
