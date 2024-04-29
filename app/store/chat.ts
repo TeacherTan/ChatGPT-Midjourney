@@ -173,15 +173,15 @@ function path(path: string): string {
 function usePlugin(mode: string) {
   // plugins为一个数组，每一个元素为一个对象，对象的key为插件名，value为插件的配置
   let plugins: Record<string, any> = {
-    ADetailer: [DEFAULT_ADETAILER],
+    ADetailer: DEFAULT_ADETAILER,
   };
   // 默认使用ADetailer插件，若为IMAGINE模式则增加ControlNet插件
   if (mode !== "IMAGINE") {
     console.log("[Use Plugin]: ", plugins);
     return plugins;
   } else {
+    plugins["controlnet"] = DEFAULT_CONTROLNET;
     console.log("[Use Plugin]: ", plugins);
-    plugins["controlnet"] = [DEFAULT_CONTROLNET];
     return plugins;
   }
 }

@@ -204,7 +204,7 @@ export const DEFAULT_CONTROLNET = {
       threshold_b: 64,
       guidance_start: 0.0,
       guidance_end: 1.0,
-      control_mode: 2,
+      control_mode: 1,
       pixel_perfect: false,
     },
   ],
