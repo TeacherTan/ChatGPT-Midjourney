@@ -170,7 +170,7 @@ function path(path: string): string {
   return [baseUrl, path].join("/");
 }
 
-function usePlugin(mode: string) {
+function fillPlugin(mode: string) {
   // plugins为一个数组，每一个元素为一个对象，对象的key为插件名，value为插件的配置
   let plugins: Record<string, any> = {
     ADetailer: DEFAULT_ADETAILER,
@@ -533,7 +533,7 @@ export const useChatStore = create<ChatStore>()(
                   cfg_scale: 7,
                   width: 512,
                   height: 768,
-                  alwayson_scripts: usePlugin(extAttr?.mjImageMode),
+                  alwayson_scripts: fillPlugin(extAttr?.mjImageMode),
                 }),
               });
               if (res == null) {
