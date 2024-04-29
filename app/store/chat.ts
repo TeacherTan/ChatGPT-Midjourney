@@ -528,7 +528,7 @@ export const useChatStore = create<ChatStore>()(
                 body: JSON.stringify({
                   prompt: prompt,
                   negative_prompt: DEFAULT_SD_NEGATIVE_PROMPT,
-                  batch_size: 4,
+                  batch_size: 2,
                   steps: 20,
                   cfg_scale: 7,
                   width: 512,
@@ -558,7 +558,7 @@ export const useChatStore = create<ChatStore>()(
                   // 将botMessage.attr.imgUrl存储为图片的base64
                   // 将botMessage.content存储为图片的markdown格式
                   botMessage.attr.imgUrls = [];
-                  for (let i = 0; i < resJson.images.length; i++) {
+                  for (let i = 0; i < resJson.images.length - 1; i++) {
                     const imgUrl = `data:image/jpeg;base64,${resJson.images[i]}`;
                     // console.log("[SD Response]", imgUrl);
                     botMessage.attr.imgUrls[i] = imgUrl;
