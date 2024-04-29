@@ -1,6 +1,6 @@
 import { getClientConfig } from "../config/client";
 import { ACCESS_CODE_PREFIX } from "../constant";
-import {ChatMessage, ModelType, useAccessStore, useAppConfig} from "../store";
+import { ChatMessage, ModelType, useAccessStore, useAppConfig } from "../store";
 import { ChatGPTApi } from "./platforms/openai";
 
 export const ROLES = ["system", "user", "assistant"] as const;
@@ -147,6 +147,13 @@ export function getHeaders() {
     );
   }
 
+  return headers;
+}
+
+export function getSDHeaders() {
+  let headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   return headers;
 }
 

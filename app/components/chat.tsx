@@ -1171,6 +1171,7 @@ function _Chat() {
       >
         {messages.map((message, i) => {
           const isUser = message.role === "user";
+          const isSDContent = message.attr?.imgUrls;
           const isContext = i < context.length;
           const showActions =
             i > 0 &&
@@ -1262,6 +1263,30 @@ function _Chat() {
                     </div>
                   )}
                   <div className={styles["chat-message-item"]}>
+                    {/* {isSDContent ? (
+                      <div className={styles["chat-sd-img"]}>
+                        {message.attr?.imgUrls?.map((img: string | undefined, index: React.Key | null | undefined) => (
+                          <img key={index} src={img} alt={`Image ${index}`} />
+                        ))}
+                      </div>
+                    ) : (
+                      <Markdown
+                        content={message.content}
+                        loading={
+                          (message.preview || message.streaming) &&
+                          message.content.length === 0 &&
+                          !isUser
+                        }
+                        onContextMenu={(e) => onRightClick(e, message)}
+                        onDoubleClickCapture={() => {
+                          if (!isMobileScreen) return;
+                          setUserInput(message.content);
+                        }}
+                        fontSize={fontSize}
+                        parentRef={scrollRef}
+                        defaultShow={i >= messages.length - 6}
+                      />
+                    )} */}
                     <Markdown
                       content={message.content}
                       loading={
@@ -1278,6 +1303,18 @@ function _Chat() {
                       parentRef={scrollRef}
                       defaultShow={i >= messages.length - 6}
                     />
+                    {isSDContent && (
+                      <div className={styles["chat-sd-img"]}>
+                        {message.attr?.imgUrls?.map(
+                          (
+                            img: string | undefined,
+                            index: React.Key | null,
+                          ) => (
+                            <img key={index} src={img} alt={`Image ${index}`} />
+                          ),
+                        )}
+                      </div>
+                    )}
                   </div>
                   {/* {!isUser &&
                     message.model == "midjourney" &&

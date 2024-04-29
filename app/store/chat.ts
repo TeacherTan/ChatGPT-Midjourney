@@ -20,6 +20,7 @@ import {
 import {
   api,
   getHeaders,
+  getSDHeaders,
   RequestMessage,
   useGetMidjourneySelfProxyUrl,
 } from "../client/api";
@@ -150,8 +151,8 @@ function combinePrompt(content: string) {
 }
 
 function path(path: string): string {
-  // base地址：DEFAULT_SD_API_HOST
-  let baseUrl = DEFAULT_SD_API_HOST;
+  // let baseUrl = DEFAULT_SD_API_HOST;
+  let baseUrl = "/api/sd";
 
   if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, baseUrl.length - 1);
@@ -160,18 +161,6 @@ function path(path: string): string {
 
   return [baseUrl, path].join("/");
 }
-// function readPNGFile(filePath: string): Promise<string> {
-//   return new Promise((resolve, reject) => {
-//     fs.readFile(filePath)
-//       .then((data) => {
-//         const base64Str = Buffer.from(data).toString("base64");
-//         resolve(`data:image/png;base64,${base64Str}`);
-//       })
-//       .catch((error) => {
-//         reject(error);
-//       });
-//   });
-// }
 
 function fillTemplateWith(input: string, modelConfig: ModelConfig) {
   const vars = {
@@ -505,9 +494,6 @@ export const useChatStore = create<ChatStore>()(
           const startFn = async () => {
             // const prompt = content.substring(3).trim();
             const prompt = combinePrompt(content);
-            let action: string = "IMAGINE";
-            console.log(action);
-            botMessage.attr.action = action;
             try {
               const imageBase64s =
                 extAttr?.useImages?.map((ui: any) => ui.base64) || [];
@@ -527,19 +513,12 @@ export const useChatStore = create<ChatStore>()(
                 }),
               });
               if (res == null) {
-                botMessage.content =
-                  Locale.Midjourney.TaskErrNotSupportType(action);
                 botMessage.streaming = false;
                 return;
               }
               if (!res.ok) {
                 const text = await res.text();
-                botMessage.content =
-                  res.status === 401
-                    ? `${Locale.Error.Unauthorized}\n\`\`\`json\n${text}\n\`\`\`\n`
-                    : Locale.Midjourney.TaskSubmitErr(
-                        text || Locale.Midjourney.UnknownError,
-                      );
+                botMessage.content = text;
               } else {
                 // res已返回json
                 const resJson = await res.json();
@@ -558,20 +537,25 @@ export const useChatStore = create<ChatStore>()(
                   // 问题二：检查botMessage中是否存在一个变量，用于存储四张图片的base64
                   // attr字段类型为any，可以存储任意类型的数据
                   // 增加字段imgUrls，存储四张图片的base64，在前端再去解析
-                  const taskId: string = resJson.taskId;
-                  const prefixContent = Locale.Midjourney.TaskPrefix(
-                    prompt,
-                    taskId,
-                  );
-                  botMessage.content =
-                    prefixContent +
-                    `[${new Date().toLocaleString()}] - ${
-                      Locale.Midjourney.TaskSubmitOk
-                    }: ` +
-                    Locale.Midjourney.PleaseWait;
-                  botMessage.attr.taskId = taskId;
+                  const imgUrls = resJson.image;
+                  botMessage.attr.imgUrls = imgUrls;
                   botMessage.attr.status = resJson.status;
-                  this.fetchMidjourneyStatus(botMessage, extAttr);
+                  botMessage.attr.prompt = prompt;
+                  botMessage.content = Locale.Midjourney.TaskSubmitOk;
+                  // const taskId: string = resJson.taskId;
+                  // const prefixContent = Locale.Midjourney.TaskPrefix(
+                  //   prompt,
+                  //   taskId,
+                  // );
+                  // botMessage.content =
+                  //   prefixContent +
+                  //   `[${new Date().toLocaleString()}] - ${
+                  //     Locale.Midjourney.TaskSubmitOk
+                  //   }: ` +
+                  //   Locale.Midjourney.PleaseWait;
+                  // botMessage.attr.taskId = taskId;
+                  // botMessage.attr.status = resJson.status;
+                  // this.fetchMidjourneyStatus(botMessage, extAttr);
                 }
               }
             } catch (e: any) {
