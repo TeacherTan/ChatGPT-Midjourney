@@ -1305,14 +1305,13 @@ function _Chat() {
                     />
                     {isSDContent && (
                       <div className={styles["chat-sd-img"]}>
-                        {message.attr?.imgUrls?.map(
+                        {/* {message.attr?.imgUrls?.map(
                           (
                             img: string | undefined,
                             index: React.Key | null,
-                          ) => (
-                            <img key={index} src={img} alt={`Image ${index}`} />
-                          ),
-                        )}
+                          ) => <img key={index} src={img} />,
+                        )} */}
+                        <img src={message.attr?.imgUrls} alt="Base64 Image" />
                       </div>
                     )}
                   </div>

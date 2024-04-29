@@ -4,6 +4,7 @@ import { OpenaiPath } from "@/app/constant";
 import { prettyObject } from "@/app/utils/format";
 import { NextRequest, NextResponse } from "next/server";
 import { DEFAULT_SD_API_HOST, TEST_JSON } from "../../../constant";
+import sharp from "sharp";
 
 export async function handle(
   req: NextRequest,
@@ -31,11 +32,29 @@ export async function handle(
             "Content-Type": "application/json",
             accept: "application/json",
           },
-          body: JSON.stringify(TEST_JSON),
+          body: JSON.stringify(data),
         });
         if (res.status === 200) {
           console.log("Success!!!");
           const resJson = await res.json();
+          // console.log("[SD Fetch Image]", JSON.stringify(resJson.images[0]));
+          // const base64Image = resJson.images[0];
+          // const buffer = Buffer.from(base64Image, "base64");
+          // const image = sharp(buffer)
+          //   .toFormat("png", { quality: 50 })
+          //   .toBuffer();
+          // const imageBuffer = await image;
+          // if (!imageBuffer) {
+          //   return NextResponse.json({
+          //     code: 1,
+          //     status: "FAIL",
+          //     msg: "Buffer Error",
+          //   });
+          // } else {
+          //   const base64 = imageBuffer.toString("base64");
+          //   resJson.images[0] = base64;
+          // }
+          // return NextResponse.json({ code: 200, data: { images: base64 } });
           // console.log("[SD Fetch Response]", resJson);
           // return new Response(resJson, {
           //   status: res.status,
