@@ -3,25 +3,12 @@ import { getServerSideConfig } from "@/app/config/server";
 import { OpenaiPath } from "@/app/constant";
 import { prettyObject } from "@/app/utils/format";
 import { NextRequest, NextResponse } from "next/server";
+import { DEFAULT_SD_API_HOST, TEST_JSON } from "../../../constant";
 
-function getModels(remoteModelRes: OpenAIListModelResponse) {
-  const config = getServerSideConfig();
-
-  if (config.disableGPT4) {
-    remoteModelRes.data = remoteModelRes.data.filter(
-      (m) => !m.id.startsWith("gpt-4"),
-    );
-  }
-
-  return remoteModelRes;
-}
-
-async function handle(
+export async function handle(
   req: NextRequest,
   { params }: { params: { path: string[] } },
 ) {
-  console.log("[SD Route] params ", params);
-
   if (req.method === "OPTIONS") {
     return NextResponse.json({ body: "OK" }, { status: 200 });
   }
@@ -33,6 +20,39 @@ async function handle(
       let data: any = null;
       try {
         data = await req.json();
+        // console.log("[SD Route]", JSON.stringify(data));
+        console.log(
+          "[SD Fetch Path]",
+          DEFAULT_SD_API_HOST + "/sdapi/v1/txt2img",
+        );
+        const res = await fetch(DEFAULT_SD_API_HOST + "/sdapi/v1/txt2img", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify(TEST_JSON),
+        });
+        if (res.status === 200) {
+          console.log("Success!!!");
+          const resJson = await res.json();
+          // console.log("[SD Fetch Response]", resJson);
+          // return new Response(resJson, {
+          //   status: res.status,
+          //   statusText: res.statusText,
+          // });
+          return NextResponse.json(resJson, {
+            status: res.status,
+            statusText: res.statusText,
+          });
+        } else {
+          console.log(res);
+          return NextResponse.json({
+            code: 1,
+            status: res.status,
+            msg: res.statusText,
+          });
+        }
       } catch (e) {
         return NextResponse.json(
           { code: 1, status: "FAIL", msg: "无效的请求数据" },
@@ -49,4 +69,4 @@ async function handle(
 export const GET = handle;
 export const POST = handle;
 
-export const runtime = "edge";
+// export const runtime = "edge";

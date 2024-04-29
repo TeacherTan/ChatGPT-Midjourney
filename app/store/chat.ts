@@ -498,18 +498,18 @@ export const useChatStore = create<ChatStore>()(
               const imageBase64s =
                 extAttr?.useImages?.map((ui: any) => ui.base64) || [];
               const sendUrl = path(StableDiffusionPath.textToImgPath);
-              const res = await fetch(sendUrl, {
+              const res = await fetch("api/sd/sdapi/v1/txt2img", {
                 method: "POST",
-                headers: getHeaders(),
+                headers: getSDHeaders(),
                 body: JSON.stringify({
                   prompt: prompt,
                   negative_prompt: DEFAULT_SD_NEGATIVE_PROMPT,
-                  batch_size: 4,
+                  batch_size: 1,
                   steps: 20,
                   cfg_scale: 7,
                   width: 512,
                   height: 768,
-                  alwayson_scripts: [],
+                  alwayson_scripts: {},
                 }),
               });
               if (res == null) {
@@ -523,7 +523,7 @@ export const useChatStore = create<ChatStore>()(
                 // res已返回json
                 const resJson = await res.json();
                 // 发送失败
-                if (resJson.code !== 200) {
+                if (!resJson.images) {
                   botMessage.content = Locale.Midjourney.TaskSubmitErr(
                     resJson.msg ||
                       resJson.error ||
@@ -537,10 +537,10 @@ export const useChatStore = create<ChatStore>()(
                   // 问题二：检查botMessage中是否存在一个变量，用于存储四张图片的base64
                   // attr字段类型为any，可以存储任意类型的数据
                   // 增加字段imgUrls，存储四张图片的base64，在前端再去解析
-                  const imgUrls = resJson.image;
+                  // console.log("[SD Response]", resJson);
+                  const imgUrls = resJson.images;
                   botMessage.attr.imgUrls = imgUrls;
                   botMessage.attr.status = resJson.status;
-                  botMessage.attr.prompt = prompt;
                   botMessage.content = Locale.Midjourney.TaskSubmitOk;
                   // const taskId: string = resJson.taskId;
                   // const prefixContent = Locale.Midjourney.TaskPrefix(
