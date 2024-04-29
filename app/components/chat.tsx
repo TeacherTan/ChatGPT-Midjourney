@@ -756,7 +756,7 @@ function _Chat() {
         localStorage.setItem(LAST_INPUT_KEY, userInput);
         setUserInput("");
         setUseImages([]);
-        setMjImageMode("BLEND");
+        // setMjImageMode("BLEND");
         setPromptHints([]);
         if (!isMobileScreen) inputRef.current?.focus();
         setAutoScroll(true);
