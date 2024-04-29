@@ -10,7 +10,12 @@ import { createEmptyMask, Mask } from "./mask";
 import {
   DEFAULT_INPUT_TEMPLATE,
   DEFAULT_SYSTEM_TEMPLATE,
+  DEFAULT_SD_CHARACTER_PROMPT,
+  DEFAULT_SD_STYLE_PROMPT,
+  DEFAULT_SD_NEGATIVE_PROMPT,
   StoreKey,
+  StableDiffusionPath,
+  DEFAULT_SD_API_HOST,
 } from "../constant";
 import {
   api,
@@ -121,6 +126,40 @@ function countMessages(msgs: ChatMessage[]) {
   return msgs.reduce((pre, cur) => pre + estimateTokenLength(cur.content), 0);
 }
 
+function combinePrompt(content: string) {
+  const match = content.match(/\/sd\s(.*)/);
+  const stylePrompt = DEFAULT_SD_STYLE_PROMPT;
+  const contentPrompt = match ? match[1] : "";
+  const charPrompt = DEFAULT_SD_CHARACTER_PROMPT;
+
+  // 使用正则表达式进行分割，匹配逗号后跟任意数量的空格
+  const segments = contentPrompt.split(/, */);
+  const charSegments = charPrompt.split(/, */);
+
+  // 遍历每个片段，若该片段不包含在charSegments中，则添加权重":1.6"并用括号包围
+  const charSegmentsSet = new Set(charSegments);
+  const diffSegments = segments.filter(
+    (segment) => !charSegmentsSet.has(segment),
+  );
+  const weightedSegments = diffSegments.map((segment) => `(${segment}:1.6)`);
+
+  // 重新用逗号加空格组合处理后的片段
+  const result = weightedSegments.join(", ");
+
+  return [stylePrompt, result, charPrompt].join(", ");
+}
+
+function path(path: string): string {
+  // base地址：DEFAULT_SD_API_HOST
+  let baseUrl = DEFAULT_SD_API_HOST;
+
+  if (baseUrl.endsWith("/")) {
+    baseUrl = baseUrl.slice(0, baseUrl.length - 1);
+  }
+  console.log("[Send Path]: ", baseUrl, path);
+
+  return [baseUrl, path].join("/");
+}
 // function readPNGFile(filePath: string): Promise<string> {
 //   return new Promise((resolve, reject) => {
 //     fs.readFile(filePath)
@@ -352,6 +391,8 @@ export const useChatStore = create<ChatStore>()(
                 isFinished = true;
                 if (statusResJson.uri) {
                   let imgUrl = useGetMidjourneySelfProxyUrl(statusResJson.uri);
+                  // 将botMessage.attr.imgUrl存储为图片的base64
+                  // 将botMessage.content存储为图片的markdown格式
                   botMessage.attr.imgUrl = imgUrl;
                   botMessage.content =
                     prefixContent + `[![${taskId}](${imgUrl})](${imgUrl})`;
@@ -417,25 +458,9 @@ export const useChatStore = create<ChatStore>()(
       async onUserInput(content, extAttr?: any) {
         const session = get().currentSession();
         const modelConfig = session.mask.modelConfig;
-
-        if (
-          extAttr?.mjImageMode &&
-          (extAttr?.useImages?.length ?? 0) > 0 &&
-          extAttr.mjImageMode !== "IMAGINE"
-        ) {
-          if (
-            extAttr.mjImageMode === "BLEND" &&
-            (extAttr.useImages.length < 2 || extAttr.useImages.length > 5)
-          ) {
-            alert(Locale.Midjourney.BlendMinImg(2, 5));
-            return new Promise((resolve: any, reject) => {
-              resolve(false);
-            });
-          }
-          content = `/mj ${extAttr?.mjImageMode}`;
-          extAttr.useImages.forEach((img: any, index: number) => {
-            content += `::[${index + 1}]${img.filename}`;
-          });
+        if (!modelConfig.model) {
+          console.error("[Chat] model not found");
+          return;
         }
 
         const userContent = fillTemplateWith(content, modelConfig);
@@ -471,51 +496,34 @@ export const useChatStore = create<ChatStore>()(
           ]);
         });
 
-        // start midjourney task
+        // start stable-diffusion task
         if (
-          content.toLowerCase().startsWith("/mj") ||
-          content.toLowerCase().startsWith("/MJ")
+          content.toLowerCase().startsWith("/sd") ||
+          content.toLowerCase().startsWith("/SD")
         ) {
-          botMessage.model = "midjourney";
+          botMessage.model = "stable-diffusion";
           const startFn = async () => {
-            const prompt = content.substring(3).trim();
+            // const prompt = content.substring(3).trim();
+            const prompt = combinePrompt(content);
             let action: string = "IMAGINE";
             console.log(action);
-            const firstSplitIndex = prompt.indexOf("::");
-            if (firstSplitIndex > 0) {
-              action = prompt.substring(0, firstSplitIndex);
-            }
-            if (!["CUSTOM", "IMAGINE", "DESCRIBE", "BLEND"].includes(action)) {
-              botMessage.content = Locale.Midjourney.TaskErrUnknownType;
-              botMessage.streaming = false;
-              return;
-            }
             botMessage.attr.action = action;
-            let actionIndex: any = null;
-            let actionUseTaskId: any = null;
-            let cmd: any = null;
-            if (action === "CUSTOM") {
-              const s = prompt.substring(firstSplitIndex + 2);
-              const nextIndex = s.indexOf("::");
-              actionUseTaskId = s.substring(0, nextIndex);
-              cmd = s.substring(nextIndex + 2);
-            }
             try {
               const imageBase64s =
                 extAttr?.useImages?.map((ui: any) => ui.base64) || [];
-              const res = await fetch("/api/midjourney/task/submit", {
+              const sendUrl = path(StableDiffusionPath.textToImgPath);
+              const res = await fetch(sendUrl, {
                 method: "POST",
                 headers: getHeaders(),
                 body: JSON.stringify({
                   prompt: prompt,
-                  images: imageBase64s,
-                  action: action,
-                  cmd: cmd,
-                  index: actionIndex,
-                  taskId: actionUseTaskId,
-                  msgId: extAttr?.botMsg?.msgId,
-                  flags: extAttr?.botMsg?.flags,
-                  msgHash: extAttr?.botMsg?.msgHash,
+                  negative_prompt: DEFAULT_SD_NEGATIVE_PROMPT,
+                  batch_size: 4,
+                  steps: 20,
+                  cfg_scale: 7,
+                  width: 512,
+                  height: 768,
+                  alwayson_scripts: [],
                 }),
               });
               if (res == null) {
@@ -535,13 +543,21 @@ export const useChatStore = create<ChatStore>()(
               } else {
                 // res已返回json
                 const resJson = await res.json();
-                if (resJson.status == "FAIL" || resJson.code !== 0) {
+                // 发送失败
+                if (resJson.code !== 200) {
                   botMessage.content = Locale.Midjourney.TaskSubmitErr(
                     resJson.msg ||
                       resJson.error ||
                       Locale.Midjourney.UnknownError,
                   );
                 } else {
+                  // 处理图像
+                  // 将botMessage.attr.imgUrl存储为图片的base64
+                  // 将botMessage.content存储为图片的markdown格式
+                  // 问题一：resJson.image为一个数组，包含4个图片的base64
+                  // 问题二：检查botMessage中是否存在一个变量，用于存储四张图片的base64
+                  // attr字段类型为any，可以存储任意类型的数据
+                  // 增加字段imgUrls，存储四张图片的base64，在前端再去解析
                   const taskId: string = resJson.taskId;
                   const prefixContent = Locale.Midjourney.TaskPrefix(
                     prompt,

@@ -731,10 +731,11 @@ function _Chat() {
         return;
       }
     }
-    // 没有输入图像
+    // 没有输入内容，返回空
     else {
       if (userInput == "") return;
     }
+    //如果有输入命令，则执行命令
     const matchCommand = chatCommands.match(userInput);
     if (matchCommand.matched) {
       setUserInput("");
@@ -743,12 +744,14 @@ function _Chat() {
       return;
     }
     try {
+      setUseImages([...useImages, "input.png"]);
       const res: any = await chatStore.onUserInput(userInput, {
         useImages,
         mjImageMode,
         setAutoScroll,
         botMsg: extAttr?.botMsg,
       });
+      // 若发送成功，清空输入框
       if (res !== false) {
         localStorage.setItem(LAST_INPUT_KEY, userInput);
         setUserInput("");
@@ -1085,6 +1088,7 @@ function _Chat() {
   // edit / insert message modal
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const defaultImg = "input.png";
+  // const useDefaultImg = setUseImages([...useImages, defaultImg]);
 
   return (
     <div className={styles.chat} key={session.id}>
