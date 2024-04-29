@@ -50,7 +50,7 @@ export async function handle(
         }
       } catch (e) {
         return NextResponse.json(
-          { code: 1, status: "FAIL", msg: "无效的请求数据" },
+          { code: 1, status: "FAIL", msg: JSON.stringify(e) },
           { status: 200 },
         );
       }
