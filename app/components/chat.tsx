@@ -744,7 +744,7 @@ function _Chat() {
       return;
     }
     try {
-      setUseImages([...useImages, "input.png"]);
+      // setUseImages([...useImages, `./input.png`]);
       const res: any = await chatStore.onUserInput(userInput, {
         useImages,
         mjImageMode,
@@ -1088,6 +1088,7 @@ function _Chat() {
   // edit / insert message modal
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const defaultImg = "input.png";
+  // 将input.png作为base64图片插入到useImages中
   // const useDefaultImg = setUseImages([...useImages, defaultImg]);
 
   return (
@@ -1362,9 +1363,9 @@ function _Chat() {
       </div>
 
       <div className={styles["chat-input-panel"]}>
-        <PromptHints prompts={promptHints} onPromptSelect={onPromptSelect} />
+        {/* <PromptHints prompts={promptHints} onPromptSelect={onPromptSelect} /> */}
 
-        <ChatActions
+        {/* <ChatActions
           showPromptModal={() => setShowPromptModal(true)}
           scrollToBottom={scrollToBottom}
           hitBottom={hitBottom}
@@ -1386,7 +1387,7 @@ function _Chat() {
             }
             setUseImages([...useImages, img]);
           }}
-        />
+        /> */}
         {/* {useImages.length > 0 && ( */}
         <div className={styles["chat-select-images"]}>
           {/* {useImages.map((img: any, i) => (
@@ -1400,7 +1401,7 @@ function _Chat() {
                 alt={img.filename}
               />
             ))} */}
-          <img src={defaultImg} alt={defaultImg} />
+          <img id="defaultImg" src={defaultImg} alt={defaultImg} />
           <div style={{ fontSize: "12px", marginBottom: "5px" }}>
             {[
               { name: Locale.Midjourney.ModeImagineUseImg, value: "IMAGINE" },
@@ -1413,6 +1414,7 @@ function _Chat() {
                   checked={mjImageMode == item.value}
                   value={item.value}
                   onChange={(e) => {
+                    console.log(e.target.value);
                     setMjImageMode(e.target.value);
                   }}
                 />

@@ -16,6 +16,8 @@ import {
   StoreKey,
   StableDiffusionPath,
   DEFAULT_SD_API_HOST,
+  DEFAULT_CONTROLNET,
+  DEFAULT_ADETAILER,
 } from "../constant";
 import {
   api,
@@ -28,6 +30,7 @@ import { ChatControllerPool } from "../client/controller";
 import { prettyObject } from "../utils/format";
 import { estimateTokenLength } from "../utils/token";
 import { nanoid } from "nanoid";
+import { useState } from "react";
 
 export type ChatMessage = RequestMessage & {
   date: string;
@@ -165,6 +168,22 @@ function path(path: string): string {
   console.log("[Send Path]: ", baseUrl, path);
 
   return [baseUrl, path].join("/");
+}
+
+function usePlugin(mode: string) {
+  // plugins为一个数组，每一个元素为一个对象，对象的key为插件名，value为插件的配置
+  let plugins: Record<string, any> = {
+    ADetailer: [DEFAULT_ADETAILER],
+  };
+  // 默认使用ADetailer插件，若为IMAGINE模式则增加ControlNet插件
+  if (mode !== "IMAGINE") {
+    console.log("[Use Plugin]: ", plugins);
+    return plugins;
+  } else {
+    console.log("[Use Plugin]: ", plugins);
+    plugins["controlnet"] = [DEFAULT_CONTROLNET];
+    return plugins;
+  }
 }
 
 function fillTemplateWith(input: string, modelConfig: ModelConfig) {
@@ -500,9 +519,9 @@ export const useChatStore = create<ChatStore>()(
             // const prompt = content.substring(3).trim();
             const prompt = combinePrompt(content);
             try {
-              const imageBase64s =
-                extAttr?.useImages?.map((ui: any) => ui.base64) || [];
-              const sendUrl = path(StableDiffusionPath.textToImgPath);
+              // const imageBase64s =
+              //   extAttr?.useImages?.map((ui: any) => ui.base64) || [];
+              // const sendUrl = path(StableDiffusionPath.textToImgPath);
               const res = await fetch("api/sd/sdapi/v1/txt2img", {
                 method: "POST",
                 headers: getSDHeaders(),
@@ -514,7 +533,7 @@ export const useChatStore = create<ChatStore>()(
                   cfg_scale: 7,
                   width: 512,
                   height: 768,
-                  alwayson_scripts: {},
+                  alwayson_scripts: usePlugin(extAttr?.mjImageMode),
                 }),
               });
               if (res == null) {
