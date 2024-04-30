@@ -181,7 +181,7 @@ function extractKeywordsWithRegex(input: string): Set<string> {
   for (const match of matches) {
     const [, key, value] = match;
     const keywords = value.replace(/"/g, "").split(",");
-    console.log("[SD Keywords]", keywords);
+    // console.log("[SD Keywords]", keywords);
     keywords.forEach((word) => {
       if (word !== "-" && word !== "-\n")
         mergedKeywords.add(word.trim().toLowerCase());
