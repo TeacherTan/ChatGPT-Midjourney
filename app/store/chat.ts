@@ -151,7 +151,7 @@ function combinePrompt(content: string) {
   const diffSegments = segments.filter(
     (segment) => !charSegmentsSet.has(segment),
   );
-  const weightedSegments = diffSegments.map((segment) => `(${segment}:1.6)`);
+  const weightedSegments = diffSegments.map((segment) => `(${segment}:1.1)`);
 
   // 重新用逗号加空格组合处理后的片段
   const result = weightedSegments.join(", ");
