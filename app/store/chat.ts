@@ -653,6 +653,7 @@ export const useChatStore = create<ChatStore>()(
               onFinish(message) {
                 botMessage.streaming = false;
                 if (message) {
+                  console.log("[SD Prompt message]: ", message);
                   const sdPromptSet = extractKeywordsWithRegex(message);
                   const sdPrompt = combineChatPrompt(sdPromptSet);
 
