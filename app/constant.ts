@@ -79,8 +79,8 @@ export const DEFAULT_SD_NEGATIVE_PROMPT = `(nsfw:1.3),(nude:1.3),text,b&w,illust
 
 export const STABLE_DIFFUSION_MESSAGE = `假如你是专业的语言和人工智能专家，我将输入一段生成照片的指令，请帮我进行分析、并提取指令中包含
 场景(比如bedroom、office、sunset、snowy、desert、beach、hospital、hotel、restaurant、pool、school 等)、
-服装(比如naked、swimsuit、lingerie、casual、uniform、maid、bunny、dress,skirt,pants等)、
-动作(如Standing、Sitting、Squatting、Lying down、Working out、Swimming等)、
+服装(比如naked、swimsuit、lingerie、casual、uniform、maid、bunny、dress、skirt、pants等)、
+动作(如Standing、Sitting、Squatting、Lying、Swimming等)、
 肢体四个模块的关键词，将模块名和关键词合并成json格式数据进行输出。
 ## 输出限制
 -如果该模块没有关键词，内容为"-".
@@ -93,8 +93,10 @@ export const STABLE_DIFFUSION_MESSAGE = `假如你是专业的语言和人工智
   "scene": "outdoor、beach",
   "clothing": "naked",
   "action": "lying",
-   "body": "-"
-}`;
+  "body": "-"
+}
+
+我输入的指令是：{{input}}`;
 
 export const DEFAULT_MODELS = [
   {

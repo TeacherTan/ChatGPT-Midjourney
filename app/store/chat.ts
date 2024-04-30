@@ -169,7 +169,7 @@ function combineChatPrompt(contentSet: Set<unknown>) {
   // 重新用逗号加空格组合处理后的片段
   const result = weightedSegments.join(", ");
 
-  return [result].join(", ");
+  return "/sd " + [result].join(", ");
 }
 
 function extractKeywordsWithRegex(input: string): Set<string> {
@@ -242,6 +242,14 @@ function fillTemplateWith(input: string, modelConfig: ModelConfig) {
   Object.entries(vars).forEach(([name, value]) => {
     output = output.replaceAll(`{{${name}}}`, value);
   });
+
+  return output;
+}
+
+function fillSDTemplateWith(input: string) {
+  let output = STABLE_DIFFUSION_MESSAGE;
+
+  output = output.replaceAll(`{{input}}`, input);
 
   return output;
 }
@@ -623,18 +631,12 @@ export const useChatStore = create<ChatStore>()(
           ) {
             botMessage.model = "llama 3";
             const sendContent = delSDCommand(content);
-            const userMessage: ChatMessage = createMessage({
-              role: "user",
-              content: sendContent,
-            });
             const aiMessage: ChatMessage = createMessage({
               role: "user",
-              content: STABLE_DIFFUSION_MESSAGE,
+              content: fillSDTemplateWith(sendContent),
             });
             const emptySDMessage = [] as ChatMessage[];
-            const sendSDMessages = emptySDMessage
-              .concat(aiMessage)
-              .concat(userMessage);
+            const sendSDMessages = emptySDMessage.concat(aiMessage);
             console.log("[SD Messages]: ", sendSDMessages);
             api.llm.chat({
               messages: sendSDMessages,
