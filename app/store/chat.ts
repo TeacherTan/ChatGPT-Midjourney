@@ -18,6 +18,7 @@ import {
   DEFAULT_SD_API_HOST,
   DEFAULT_CONTROLNET,
   DEFAULT_ADETAILER,
+  STABLE_DIFFUSION_MESSAGE,
 } from "../constant";
 import {
   api,
@@ -141,9 +142,9 @@ function combinePrompt(content: string) {
   const contentPrompt = match ? match[1] : "";
   const charPrompt = DEFAULT_SD_CHARACTER_PROMPT;
 
-  // 使用正则表达式进行分割，匹配逗号后跟任意数量的空格
-  const segments = contentPrompt.split(/, */);
-  const charSegments = charPrompt.split(/, */);
+  // 使用正则表达式进行分割，匹配逗号后跟任意数量的空格或者单独的空格
+  const segments = contentPrompt.split(/[,，]\s*|\s+/);
+  const charSegments = charPrompt.split(/[,，]\s*|\s+/);
 
   // 遍历每个片段，若该片段不包含在charSegments中，则添加权重":1.6"并用括号包围
   const charSegmentsSet = new Set(charSegments);
@@ -156,6 +157,42 @@ function combinePrompt(content: string) {
   const result = weightedSegments.join(", ");
 
   return [stylePrompt, result, charPrompt].join(", ");
+}
+
+function combineChatPrompt(contentSet: Set<unknown>) {
+  const contentPrompt = Array.from(contentSet).join(", ");
+
+  const segments = contentPrompt.split(/[,，]\s*|\s+/);
+
+  const weightedSegments = segments.map((segment) => `${segment}`);
+
+  // 重新用逗号加空格组合处理后的片段
+  const result = weightedSegments.join(", ");
+
+  return [result].join(", ");
+}
+
+function extractKeywordsWithRegex(input: string): Set<string> {
+  const regex = /"([^"]+)":\s*("[^"]+"|[^,]+)(?=,|\})/g;
+  const matches = input.matchAll(regex);
+
+  const mergedKeywords: Set<string> = new Set<string>();
+
+  for (const match of matches) {
+    const [, key, value] = match;
+    const keywords = value.replace(/"/g, "").split(",");
+    console.log("[SD Keywords]", keywords);
+    keywords.forEach((word) => {
+      if (word !== "-" && word !== "-\n")
+        mergedKeywords.add(word.trim().toLowerCase());
+    });
+  }
+
+  return mergedKeywords;
+}
+
+function delSDCommand(content: string) {
+  return content.replace(/\/pr\s/, "");
 }
 
 function path(path: string): string {
@@ -508,132 +545,203 @@ export const useChatStore = create<ChatStore>()(
             botMessage,
           ]);
         });
-
+        const startFn = async () => {
+          // const prompt = content.substring(3).trim();
+          const prompt = combinePrompt(content);
+          try {
+            // const imageBase64s =
+            //   extAttr?.useImages?.map((ui: any) => ui.base64) || [];
+            // const sendUrl = path(StableDiffusionPath.textToImgPath);
+            const res = await fetch("api/sd/sdapi/v1/txt2img", {
+              method: "POST",
+              headers: getSDHeaders(),
+              body: JSON.stringify({
+                prompt: prompt,
+                negative_prompt: DEFAULT_SD_NEGATIVE_PROMPT,
+                batch_size: 2,
+                steps: 20,
+                cfg_scale: 7,
+                width: 512,
+                height: 768,
+                alwayson_scripts: fillPlugin(extAttr?.mjImageMode),
+              }),
+            });
+            if (res == null) {
+              botMessage.streaming = false;
+              return;
+            }
+            if (!res.ok) {
+              const text = await res.text();
+              botMessage.content = text;
+            } else {
+              // res已返回json
+              const resJson = await res.json();
+              // 发送失败
+              if (!resJson.images) {
+                botMessage.content = Locale.Midjourney.TaskSubmitErr(
+                  resJson.msg ||
+                    resJson.error ||
+                    Locale.Midjourney.UnknownError,
+                );
+              } else {
+                // 处理图像
+                botMessage.attr.imgUrls = [];
+                for (let i = 0; i < resJson.images.length - 1; i++) {
+                  const imgUrl = `data:image/jpeg;base64,${resJson.images[i]}`;
+                  // console.log("[SD Response]", imgUrl);
+                  botMessage.attr.imgUrls[i] = imgUrl;
+                }
+                botMessage.attr.status = resJson.status;
+                botMessage.content = prompt;
+              }
+            }
+          } catch (e: any) {
+            console.error(e);
+            botMessage.content = Locale.Midjourney.TaskSubmitErr(
+              e?.error || e?.message || Locale.Midjourney.UnknownError,
+            );
+          } finally {
+            ChatControllerPool.remove(sessionId, botMessage.id ?? messageIndex);
+            botMessage.streaming = false;
+          }
+        };
         // start stable-diffusion task
         if (
           content.toLowerCase().startsWith("/sd") ||
           content.toLowerCase().startsWith("/SD")
         ) {
           botMessage.model = "stable-diffusion";
-          const startFn = async () => {
-            // const prompt = content.substring(3).trim();
-            const prompt = combinePrompt(content);
-            try {
-              // const imageBase64s =
-              //   extAttr?.useImages?.map((ui: any) => ui.base64) || [];
-              // const sendUrl = path(StableDiffusionPath.textToImgPath);
-              const res = await fetch("api/sd/sdapi/v1/txt2img", {
-                method: "POST",
-                headers: getSDHeaders(),
-                body: JSON.stringify({
-                  prompt: prompt,
-                  negative_prompt: DEFAULT_SD_NEGATIVE_PROMPT,
-                  batch_size: 2,
-                  steps: 20,
-                  cfg_scale: 7,
-                  width: 512,
-                  height: 768,
-                  alwayson_scripts: fillPlugin(extAttr?.mjImageMode),
-                }),
-              });
-              if (res == null) {
-                botMessage.streaming = false;
-                return;
-              }
-              if (!res.ok) {
-                const text = await res.text();
-                botMessage.content = text;
-              } else {
-                // res已返回json
-                const resJson = await res.json();
-                // 发送失败
-                if (!resJson.images) {
-                  botMessage.content = Locale.Midjourney.TaskSubmitErr(
-                    resJson.msg ||
-                      resJson.error ||
-                      Locale.Midjourney.UnknownError,
-                  );
-                } else {
-                  // 处理图像
-                  botMessage.attr.imgUrls = [];
-                  for (let i = 0; i < resJson.images.length - 1; i++) {
-                    const imgUrl = `data:image/jpeg;base64,${resJson.images[i]}`;
-                    // console.log("[SD Response]", imgUrl);
-                    botMessage.attr.imgUrls[i] = imgUrl;
-                  }
-                  botMessage.attr.status = resJson.status;
-                  botMessage.content = prompt;
-                }
-              }
-            } catch (e: any) {
-              console.error(e);
-              botMessage.content = Locale.Midjourney.TaskSubmitErr(
-                e?.error || e?.message || Locale.Midjourney.UnknownError,
-              );
-            } finally {
-              ChatControllerPool.remove(
-                sessionId,
-                botMessage.id ?? messageIndex,
-              );
-              botMessage.streaming = false;
-            }
-          };
+
           await startFn();
           get().onNewMessage(botMessage);
           set(() => ({}));
           extAttr?.setAutoScroll(true);
         } else {
-          // make request
-          api.llm.chat({
-            messages: sendMessages,
-            config: { ...modelConfig, stream: true },
-            onUpdate(message) {
-              botMessage.streaming = true;
-              if (message) {
-                botMessage.content = message;
-              }
-              get().updateCurrentSession((session) => {
-                session.messages = session.messages.concat();
-              });
-            },
-            onFinish(message) {
-              botMessage.streaming = false;
-              if (message) {
-                botMessage.content = message;
-                get().onNewMessage(botMessage);
-              }
-              ChatControllerPool.remove(session.id, botMessage.id);
-            },
-            onError(error) {
-              const isAborted = error.message.includes("aborted");
-              botMessage.content +=
-                "\n\n" +
-                prettyObject({
-                  error: true,
-                  message: error.message,
+          if (
+            content.toLowerCase().startsWith("/pr") ||
+            content.toLowerCase().startsWith("/PR")
+          ) {
+            botMessage.model = "llama 3";
+            const sendContent = delSDCommand(content);
+            const userMessage: ChatMessage = createMessage({
+              role: "user",
+              content: sendContent,
+            });
+            const aiMessage: ChatMessage = createMessage({
+              role: "user",
+              content: STABLE_DIFFUSION_MESSAGE,
+            });
+            const emptySDMessage = [] as ChatMessage[];
+            const sendSDMessages = emptySDMessage
+              .concat(aiMessage)
+              .concat(userMessage);
+            console.log("[SD Messages]: ", sendSDMessages);
+            api.llm.chat({
+              messages: sendSDMessages,
+              config: { ...modelConfig, stream: false },
+              onUpdate(message) {
+                botMessage.streaming = false;
+                if (message) {
+                  botMessage.content = message;
+                }
+                get().updateCurrentSession((session) => {
+                  session.messages = session.messages.concat();
                 });
-              botMessage.streaming = false;
-              userMessage.isError = !isAborted;
-              botMessage.isError = !isAborted;
-              get().updateCurrentSession((session) => {
-                session.messages = session.messages.concat();
-              });
-              ChatControllerPool.remove(
-                session.id,
-                botMessage.id ?? messageIndex,
-              );
+              },
+              onFinish(message) {
+                botMessage.streaming = false;
+                if (message) {
+                  const sdPromptSet = extractKeywordsWithRegex(message);
+                  const sdPrompt = combineChatPrompt(sdPromptSet);
 
-              console.error("[Chat] failed ", error);
-            },
-            onController(controller) {
-              // collect controller for stop/retry
-              ChatControllerPool.addController(
-                session.id,
-                botMessage.id ?? messageIndex,
-                controller,
-              );
-            },
-          });
+                  botMessage.content = sdPrompt;
+                  get().onNewMessage(botMessage);
+                }
+                ChatControllerPool.remove(session.id, botMessage.id);
+              },
+              onError(error) {
+                const isAborted = error.message.includes("aborted");
+                botMessage.content +=
+                  "\n\n" +
+                  prettyObject({
+                    error: true,
+                    message: error.message,
+                  });
+                botMessage.streaming = false;
+                userMessage.isError = !isAborted;
+                botMessage.isError = !isAborted;
+                get().updateCurrentSession((session) => {
+                  session.messages = session.messages.concat();
+                });
+                ChatControllerPool.remove(
+                  session.id,
+                  botMessage.id ?? messageIndex,
+                );
+
+                console.error("[Chat] failed ", error);
+              },
+              onController(controller) {
+                // collect controller for stop/retry
+                ChatControllerPool.addController(
+                  session.id,
+                  botMessage.id ?? messageIndex,
+                  controller,
+                );
+              },
+            });
+          } else {
+            api.llm.chat({
+              messages: sendMessages,
+              config: { ...modelConfig, stream: true },
+              onUpdate(message) {
+                botMessage.streaming = true;
+                if (message) {
+                  botMessage.content = message;
+                }
+                get().updateCurrentSession((session) => {
+                  session.messages = session.messages.concat();
+                });
+              },
+              onFinish(message) {
+                botMessage.streaming = false;
+                if (message) {
+                  botMessage.content = message;
+                  get().onNewMessage(botMessage);
+                }
+                ChatControllerPool.remove(session.id, botMessage.id);
+              },
+              onError(error) {
+                const isAborted = error.message.includes("aborted");
+                botMessage.content +=
+                  "\n\n" +
+                  prettyObject({
+                    error: true,
+                    message: error.message,
+                  });
+                botMessage.streaming = false;
+                userMessage.isError = !isAborted;
+                botMessage.isError = !isAborted;
+                get().updateCurrentSession((session) => {
+                  session.messages = session.messages.concat();
+                });
+                ChatControllerPool.remove(
+                  session.id,
+                  botMessage.id ?? messageIndex,
+                );
+
+                console.error("[Chat] failed ", error);
+              },
+              onController(controller) {
+                // collect controller for stop/retry
+                ChatControllerPool.addController(
+                  session.id,
+                  botMessage.id ?? messageIndex,
+                  controller,
+                );
+              },
+            });
+          }
+          // make request
         }
       },
 

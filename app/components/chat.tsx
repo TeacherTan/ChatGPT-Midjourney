@@ -753,6 +753,7 @@ function _Chat() {
       });
       // 若发送成功，清空输入框
       if (res !== false) {
+        if (res)
         localStorage.setItem(LAST_INPUT_KEY, userInput);
         setUserInput("");
         setUseImages([]);

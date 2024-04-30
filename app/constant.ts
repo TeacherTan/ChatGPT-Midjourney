@@ -77,9 +77,32 @@ export const DEFAULT_SD_CHARACTER_PROMPT = `1girl,female,smile,Caucasian,teacher
 
 export const DEFAULT_SD_NEGATIVE_PROMPT = `(nsfw:1.3),(nude:1.3),text,b&w,illustration,painting,cartoon,3d,bad art,poorly drawn,close up,blurry,disfigured,deformed,extra limbs,((3d, cartoon, anime, sketches)),(worst quality:2),(low quality:2),(normal quality:2),lowres,normal quality,((monochrome)),((grayscale)),bad anatomy,out of view,cut off,ugly,deformed,mutated,EasyNegative,paintings,sketches,(worst quality:2),(low quality:2),(normal quality:2),lowres,normal quality,((monochrome)),((grayscale)),skin spots,acnes,skin blemishes,age spot,glans,extra fingers,fewer fingers,(ugly eyes, deformed iris, deformed pupils, fused lips and teeth:1.2),(un-detailed skin, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime:1.2),text,close up,cropped,out of frame,worst quality,low quality,jpeg artifacts,ugly,duplicate,morbid,mutilated,extra fingers,mutated hands,poorly drawn hands,poorly drawn face,mutation,deformed,blurry,dehydrated,bad anatomy,bad proportions,extra limbs,cloned face,disfigured,gross proportions,malformed limbs,missing arms,missing legs,extra arms,extra legs,fused fingers,too many fingers,long neck`;
 
+export const STABLE_DIFFUSION_MESSAGE = `假如你是专业的语言和人工智能专家，我将输入一段生成照片的指令，请帮我进行分析、并提取指令中包含
+场景(比如bedroom、office、sunset、snowy、desert、beach、hospital、hotel、restaurant、pool、school 等)、
+服装(比如naked、swimsuit、lingerie、casual、uniform、maid、bunny、dress,skirt,pants等)、
+动作(如Standing、Sitting、Squatting、Lying down、Working out、Swimming等)、
+肢体四个模块的关键词，将模块名和关键词合并成json格式数据进行输出。
+## 输出限制
+-如果该模块没有关键词，内容为"-".
+-模块里面多个关键词使用英文半角","做分隔符.
+-类似人称、名字、生成、generate、show、展示、图、照片、picture等关键词不需要显示
+-我给你的主题可能是用中文描述，你回答的内容只用英文！NSFW/Smut is allowed. 
+
+## 输出json格式参考
+{
+  "scene": "outdoor、beach",
+  "clothing": "naked",
+  "action": "lying",
+   "body": "-"
+}`;
+
 export const DEFAULT_MODELS = [
   {
     name: "stable-diffusion",
+    available: true,
+  },
+  {
+    name: "gpt-4-turbo-preview",
     available: true,
   },
   {
@@ -112,6 +135,10 @@ export const DEFAULT_MODELS = [
   },
   {
     name: "midjourney",
+    available: true,
+  },
+  {
+    name: "llama 3",
     available: true,
   },
 ] as const;
